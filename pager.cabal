@@ -60,4 +60,5 @@ executable hs-pager-test-pager
     , bytestring
     , conduit-extra
     , pager
+    , text
   
