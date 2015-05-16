@@ -47,6 +47,7 @@ library
     , resourcet
     , safe
     , unix
+    , terminfo
     , text
     , transformers
   
