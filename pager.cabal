@@ -1,9 +1,13 @@
 name:                pager
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Open up a pager, like 'less' or 'more'
 description:         
   This opens up the user's $PAGER. On Linux, this is usually called @less@. On
   the various BSDs, this is usually @more@.
+  .
+  CHANGES
+  .
+  [0.1.1.0] Add @printOrPage@ function and @sendToPagerStrict@ function.
 homepage:            https://github.com/pharpend/pager
 license:             BSD2
 license-file:        LICENSE
@@ -27,7 +31,7 @@ source-repository head
 source-repository this
   type:                git
   location:            https://github.com/pharpend/pager.git
-  tag:                 0.1.0.0
+  tag:                 0.1.1.0
 
 library
   other-extensions:    
