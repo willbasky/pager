@@ -29,9 +29,12 @@ import Safe
 import System.Directory
 import System.Exit
 import System.IO
-import System.IO.Temp
 import System.Posix.ByteString
 import System.Process
+
+-- |Send a lazy 'Bl.ByteString' to the user's @$PAGER@.
+sendToPager :: Bl.ByteString -> IO ()
+sendToPager bytes = sendToPagerConduit (sourceLbs bytes)
 
 -- |This finds the user's @$PAGER@. This will fail if:
 -- 
@@ -73,10 +76,9 @@ findPager =
                   return "less"
                 |  otherwise -> return "more"
 
--- |Send a lazy 'Bl.ByteString' to the user's PAGER
-sendToPager :: Bl.ByteString -> IO ()
-sendToPager bytes = sendToPagerConduit (sourceLbs bytes)
-
+-- |This is what 'sendToPager' uses on the back end. It takes a
+-- 'Producer', from "Data.Conduit", and then sends the produced bytes to
+-- the pager's stdin.
 sendToPagerConduit :: Producer (ResourceT IO) ByteString -> IO ()
 sendToPagerConduit producer =
   do pager <- fmap unpack findPager
