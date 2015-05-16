@@ -21,20 +21,56 @@ import Data.ByteString.Char8 (unpack)
 import qualified Data.ByteString.Lazy as Bl
 import Data.Conduit
 import Data.Conduit.Binary
-import Data.Text (Text)
+import Data.List
 import qualified Data.Monoid (mconcat, mempty)
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import qualified Data.Text.IO as TIO
 import Safe
 import System.Directory
 import System.Exit
 import System.IO
 import System.Posix.ByteString
 import System.Process
+import System.Console.Terminfo
+
+-- |If the user's terminal is long enough to display the (strict)
+-- 'Text', just print it. Else, send it to the pager.
+-- 
+-- The text needs to be strict, because the function counts the number
+-- of lines in the text. (This is also why it needs to be text, and not
+-- a bytestring, because Text has stuff like line-counting).
+printOrPage :: Text -> IO ()
+printOrPage text =
+  do terminal <- setupTermFromEnv
+     let linesInTerminal =
+           getCapability terminal termLines
+         columnsInTerminal =
+           getCapability terminal termColumns
+         linesInText = length (T.lines text)
+         columnsInText =
+           last (sort (fmap T.length (T.lines text)))
+         usePager =
+           case (columnsInTerminal,linesInTerminal) of
+             (Nothing,_) -> True
+             (_,Nothing) -> True
+             (Just x,Just y)
+               | or [x <= columnsInText,y <= linesInText] -> True
+               | otherwise -> False
+     if usePager
+        then sendToPagerStrict (TE.encodeUtf8 text)
+        else TIO.putStr text
 
 -- |Send a lazy 'Bl.ByteString' to the user's @$PAGER@.
 sendToPager :: Bl.ByteString -> IO ()
-sendToPager bytes = sendToPagerConduit (sourceLbs bytes)
+sendToPager bytes =
+  sendToPagerConduit (sourceLbs bytes)
+
+-- |Send a strict 'B.ByteString' to the user's @$PAGER@.
+sendToPagerStrict :: B.ByteString -> IO ()
+sendToPagerStrict bytes =
+  sendToPagerConduit (sourceLbs (Bl.fromStrict bytes))
 
 -- |This finds the user's @$PAGER@. This will fail if:
 -- 
