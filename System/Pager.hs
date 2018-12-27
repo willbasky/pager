@@ -109,7 +109,7 @@ findPager =
              if |  searchForLess == mempty ->
                   fail "There doesn't appear to be any pager installed."
                 |  elem "less" searchForLess ->
-                  return "less"
+                  return "less -r"
                 |  otherwise -> return "more"
 
 -- |This is what 'sendToPager' uses on the back end. It takes a
